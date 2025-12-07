@@ -269,7 +269,7 @@ export default function PlaylistsPage() {
   });
   const router = useRouter();
 
-  const BASE_URL = "http://localhost:8080";
+  const BASE_URL = "https://effective-halibut-9w4xp4qppggf7qv5-8080.app.github.dev/";
 
   const fetchPlaylists = useCallback(async () => {
     try {

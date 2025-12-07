@@ -216,7 +216,7 @@ export default function DashboardPage() {
   const router = useRouter();
 
   const ITEMS_PER_PAGE = 20;
-  const BASE_URL = "http://localhost:8080";
+  const BASE_URL = "https://effective-halibut-9w4xp4qppggf7qv5-8080.app.github.dev/";
 
   const fetchSongs = useCallback(
     async (page: number) => {
@@ -276,8 +276,16 @@ export default function DashboardPage() {
     }
   };
 
-  const handlePlaySong = (song: Song) => {
-    playSong(song);
+  const handlePlaySong = (song: Song, index: number) => {
+    // Play this song with the full playlist as queue
+    playSong(song, songs);
+  };
+
+  const handlePlayAll = () => {
+    if (songs.length > 0) {
+      // Play first song with full playlist as queue
+      playSong(songs[0], songs);
+    }
   };
 
   const filteredSongs = songs.filter(

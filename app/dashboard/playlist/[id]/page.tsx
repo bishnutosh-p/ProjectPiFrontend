@@ -132,7 +132,7 @@ export default function PlaylistDetailPage() {
   const { playSong } = usePlayer();
   const router = useRouter();
 
-  const BASE_URL = "http://localhost:8080";
+  const BASE_URL = "https://effective-halibut-9w4xp4qppggf7qv5-8080.app.github.dev/";
 
   const fetchPlaylistDetails = useCallback(async () => {
     try {
@@ -251,13 +251,15 @@ export default function PlaylistDetailPage() {
     }
   };
 
-  const handlePlaySong = (song: Song) => {
-    playSong(song);
+  const handlePlaySong = (song: Song, index: number) => {
+    // Play this song with the full playlist as queue
+    playSong(song, songs);
   };
 
   const handlePlayAll = () => {
     if (songs.length > 0) {
-      playSong(songs[0]);
+      // Play first song with full playlist as queue
+      playSong(songs[0], songs);
     }
   };
 
@@ -412,7 +414,7 @@ export default function PlaylistDetailPage() {
                     <div
                       key={song.SongID}
                       className="flex items-center gap-4 p-3 bg-[#1a1a1a] hover:bg-[#252525] rounded-lg transition cursor-pointer group"
-                      onClick={() => handlePlaySong(song)}
+                      onClick={() => handlePlaySong(song, index)}
                     >
                       <span className="w-8 text-center text-gray-400 text-sm">{index + 1}</span>
                       <Image
