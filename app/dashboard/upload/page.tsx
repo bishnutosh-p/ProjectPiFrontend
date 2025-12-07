@@ -15,8 +15,7 @@ export default function UploadPage() {
   const [uploadProgress, setUploadProgress] = useState(0);
   const router = useRouter();
 
-  const BASE_URL = "https://effective-halibut-9w4xp4qppggf7qv5-8080.app.github.dev/";
-
+  const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };

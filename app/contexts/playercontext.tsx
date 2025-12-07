@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, useRef, useEffect, ReactNode } from "react";
+import { createContext, useContext, useState, useRef, useEffect, useCallback, ReactNode } from "react";
 
 interface Song {
   ID: number;
@@ -44,62 +44,8 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   const audioRef = useRef<HTMLAudioElement>(null);
   const isLoadingRef = useRef(false);
 
-  const BASE_URL = "https://effective-halibut-9w4xp4qppggf7qv5-8080.app.github.dev/";
-
-  useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio) return;
-
-    const updateTime = () => setCurrentTime(audio.currentTime);
-    const updateDuration = () => setDuration(audio.duration);
-    const handleEnded = () => {
-      if (repeatMode === "one") {
-        // Repeat current song
-        audio.currentTime = 0;
-        audio.play();
-      } else if (repeatMode === "all" || currentIndex < queue.length - 1) {
-        // Play next song
-        playNext();
-      } else {
-        // Stop at the end
-        setIsPlaying(false);
-        setCurrentTime(0);
-      }
-    };
-
-    audio.addEventListener("timeupdate", updateTime);
-    audio.addEventListener("loadedmetadata", updateDuration);
-    audio.addEventListener("ended", handleEnded);
-
-    return () => {
-      audio.removeEventListener("timeupdate", updateTime);
-      audio.removeEventListener("loadedmetadata", updateDuration);
-      audio.removeEventListener("ended", handleEnded);
-    };
-  }, [repeatMode, currentIndex, queue.length]);
-
-  useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio) return;
-
-    if (isPlaying && !isLoadingRef.current) {
-      audio.play().catch((error) => {
-        console.error("Error playing audio:", error);
-        setIsPlaying(false);
-      });
-    } else if (!isPlaying && !isLoadingRef.current) {
-      audio.pause();
-    }
-  }, [isPlaying]);
-
-  useEffect(() => {
-    const audio = audioRef.current;
-    if (audio) {
-      audio.volume = volume / 100;
-    }
-  }, [volume]);
-
-  const loadAndPlaySong = (song: Song) => {
+  const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
+  const loadAndPlaySong = useCallback((song: Song) => {
     const token = localStorage.getItem("token");
     if (audioRef.current && token) {
       isLoadingRef.current = true;
@@ -134,7 +80,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
           setIsPlaying(false);
         });
     }
-  };
+  }, [BASE_URL]);
 
   const playSong = (song: Song, newQueue?: Song[]) => {
     if (newQueue) {
@@ -180,7 +126,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     setCurrentIndex(0);
   };
 
-  const playNext = () => {
+  const playNext = useCallback(() => {
     if (queue.length === 0) return;
 
     let nextIndex = currentIndex + 1;
@@ -194,7 +140,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
 
     setCurrentIndex(nextIndex);
     loadAndPlaySong(queue[nextIndex]);
-  };
+  }, [queue, currentIndex, repeatMode, loadAndPlaySong]);
 
   const playPrevious = () => {
     if (queue.length === 0) return;
@@ -225,6 +171,59 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       return "off";
     });
   };
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    const updateTime = () => setCurrentTime(audio.currentTime);
+    const updateDuration = () => setDuration(audio.duration);
+    const handleEnded = () => {
+      if (repeatMode === "one") {
+        // Repeat current song
+        audio.currentTime = 0;
+        audio.play();
+      } else if (repeatMode === "all" || currentIndex < queue.length - 1) {
+        // Play next song
+        playNext();
+      } else {
+        // Stop at the end
+        setIsPlaying(false);
+        setCurrentTime(0);
+      }
+    };
+
+    audio.addEventListener("timeupdate", updateTime);
+    audio.addEventListener("loadedmetadata", updateDuration);
+    audio.addEventListener("ended", handleEnded);
+
+    return () => {
+      audio.removeEventListener("timeupdate", updateTime);
+      audio.removeEventListener("loadedmetadata", updateDuration);
+      audio.removeEventListener("ended", handleEnded);
+    };
+  }, [repeatMode, currentIndex, queue.length, playNext]);
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    if (isPlaying && !isLoadingRef.current) {
+      audio.play().catch((error) => {
+        console.error("Error playing audio:", error);
+        setIsPlaying(false);
+      });
+    } else if (!isPlaying && !isLoadingRef.current) {
+      audio.pause();
+    }
+  }, [isPlaying]);
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (audio) {
+      audio.volume = volume / 100;
+    }
+  }, [volume]);
 
   return (
     <PlayerContext.Provider

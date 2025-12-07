@@ -2,8 +2,14 @@
 
 import { useEffect, useState } from "react";
 
+interface Song {
+  ID: number;
+  Title: string;
+  Artist: string;
+}
+
 export default function Songs() {
-  const [songs, setSongs] = useState([]);
+  const [songs, setSongs] = useState<Song[]>([]); // Explicitly type the state
 
   useEffect(() => {
     async function fetchSongs() {

@@ -85,11 +85,15 @@ function EditSongModal({ isOpen, song, onSave, onCancel }: EditModalProps) {
   // Reset form when modal opens with new song
   useEffect(() => {
     if (isOpen && song) {
-      setSongTitle(song.Title || "");
-      setArtistName(song.Artist || "");
-      setErrors({ title: "", artist: "" });
+      const title = song.Title || "";
+      const artist = song.Artist || "";
+      setTimeout(() => {
+        setSongTitle(title);
+        setArtistName(artist);
+        setErrors({ title: "", artist: "" });
+      }, 0);
     }
-  }, [isOpen, song]); // Added isOpen to dependencies
+  }, [isOpen, song]);
 
   if (!isOpen || !song) return null;
 
@@ -144,7 +148,7 @@ function EditSongModal({ isOpen, song, onSave, onCancel }: EditModalProps) {
             <input
               id="song-title"
               type="text"
-              value={songTitle}
+              onKeyDown={handleKeyPress}
               onChange={(e) => setSongTitle(e.target.value)}
               onKeyPress={handleKeyPress}
               className={`w-full bg-[#0a0a0a] text-white px-4 py-2.5 rounded-lg border ${
@@ -216,8 +220,7 @@ export default function DashboardPage() {
   const router = useRouter();
 
   const ITEMS_PER_PAGE = 20;
-  const BASE_URL = "https://effective-halibut-9w4xp4qppggf7qv5-8080.app.github.dev/";
-
+  const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
   const fetchSongs = useCallback(
     async (page: number) => {
       try {
@@ -276,16 +279,9 @@ export default function DashboardPage() {
     }
   };
 
-  const handlePlaySong = (song: Song, index: number) => {
+  const handlePlaySong = (song: Song) => {
     // Play this song with the full playlist as queue
     playSong(song, songs);
-  };
-
-  const handlePlayAll = () => {
-    if (songs.length > 0) {
-      // Play first song with full playlist as queue
-      playSong(songs[0], songs);
-    }
   };
 
   const filteredSongs = songs.filter(

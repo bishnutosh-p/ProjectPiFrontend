@@ -38,8 +38,7 @@ function AddToPlaylistModal({ isOpen, songId, onClose }: AddToPlaylistModalProps
   const [playlists, setPlaylists] = useState<Playlist[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
-  const BASE_URL = "https://effective-halibut-9w4xp4qppggf7qv5-8080.app.github.dev/";
-
+  const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
   useEffect(() => {
     if (isOpen) {
       fetchPlaylists();
@@ -162,8 +161,7 @@ export default function LibraryPage() {
   const router = useRouter();
 
   const ITEMS_PER_PAGE = 50;
-  const BASE_URL = "https://effective-halibut-9w4xp4qppggf7qv5-8080.app.github.dev/";
-
+  const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
   const fetchSongs = useCallback(
     async (page: number) => {
       try {

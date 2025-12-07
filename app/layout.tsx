@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+// import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { PlayerProvider } from "./contexts/playercontext";
@@ -6,9 +6,12 @@ import GlobalPlayer from "./components/globalplayer";
 
 const inter = Inter({ subsets: ["latin"] });
 
-export const metadata: Metadata = {
-  title: "ProjectPi - Your Personal Music Library",
-  description: "Stream your music anywhere",
+export const metadata = {
+  title: "ProjectPi",
+  description: "Your personal music streaming platform",
+  icons: {
+    icon: "/favicon.svg", // or '/favicon.ico' depending on which option you chose
+  },
 };
 
 export default function RootLayout({
