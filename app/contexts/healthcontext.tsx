@@ -18,9 +18,6 @@ export function HealthProvider({ children }: { children: ReactNode }) {
   const pathname = usePathname();
 
   const checkHealth = useCallback(async () => {
-    // Don't check if we're already on the offline page
-    if (pathname === "/offline") return;
-
     setIsChecking(true);
     try {
       const controller = new AbortController();

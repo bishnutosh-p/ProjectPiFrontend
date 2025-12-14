@@ -9,12 +9,16 @@ import { useHealth } from "../contexts/healthcontext";
 export default function OfflinePage() {
   const [retryCount, setRetryCount] = useState(0);
   const [showAbout, setShowAbout] = useState(false);
+  const [cooldown, setCooldown] = useState(0);
   const router = useRouter();
   const { isHealthy, isChecking, checkHealth } = useHealth();
 
   const handleRetry = async () => {
+    if (cooldown > 0) return;
+    
     await checkHealth();
     setRetryCount((prev) => prev + 1);
+    setCooldown(30);
     
     // If healthy after check, redirect
     if (isHealthy) {
@@ -22,12 +26,20 @@ export default function OfflinePage() {
     }
   };
 
-  // Auto-retry every 10 seconds
+  // Cooldown timer
+  useEffect(() => {
+    if (cooldown > 0) {
+      const timer = setTimeout(() => setCooldown(cooldown - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [cooldown]);
+
+  // Auto-retry every 60 seconds
   useEffect(() => {
     const interval = setInterval(async () => {
       await checkHealth();
       setRetryCount((prev) => prev + 1);
-    }, 10000);
+    }, 60000);
 
     return () => clearInterval(interval);
   }, [checkHealth]);
@@ -71,7 +83,7 @@ export default function OfflinePage() {
               </svg>
             </div>
             <h1 className="text-3xl md:text-4xl font-bold text-white mb-3">
-              Pi is Currently Offline
+              SpotiPi(ProjectPi) is Currently Offline
             </h1>
             <p className="text-lg text-gray-300 mb-2">
               The backend server is not responding.
@@ -85,7 +97,7 @@ export default function OfflinePage() {
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <button
                 onClick={handleRetry}
-                disabled={isChecking}
+                disabled={isChecking || cooldown > 0}
                 className="px-8 py-3 bg-yellow-400 hover:bg-yellow-500 disabled:bg-yellow-600 text-black font-semibold rounded-lg transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-70"
               >
                 {isChecking ? (
@@ -112,6 +124,8 @@ export default function OfflinePage() {
                     </svg>
                     Checking...
                   </span>
+                ) : cooldown > 0 ? (
+                  `Wait ${cooldown}s`
                 ) : (
                   "Retry Connection"
                 )}
@@ -129,7 +143,7 @@ export default function OfflinePage() {
             </div>
 
             <p className="text-sm text-gray-400">
-              Auto-retrying... (Attempts: {retryCount})
+              Auto-retrying (Every 60s)... (Attempts: {retryCount})
             </p>
           </div>
 
