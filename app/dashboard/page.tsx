@@ -3,8 +3,10 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import Image from "next/image";
 import { usePlayer } from "../contexts/playercontext";
+import { useToast } from "../components/toast";
+import { GridSkeleton, ListSkeleton } from "../components/skeletonloader";
+import FadeImage from "../components/fadeimage";
 
 interface Song {
   ID: number;
@@ -39,8 +41,8 @@ function DeleteConfirmationModal({ isOpen, songTitle, onConfirm, onCancel }: Del
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
-      <div className="bg-[#1a1a1a] border border-gray-800 rounded-lg p-6 max-w-md w-full mx-4 shadow-2xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm animate-fade-in">
+      <div className="glass-light border border-gray-800 rounded-lg p-6 max-w-md w-full mx-4 shadow-2xl animate-fade-in">
         <div className="flex items-center gap-4 mb-4">
           <div className="w-12 h-12 bg-red-500/20 rounded-full flex items-center justify-center">
             <svg className="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -61,13 +63,13 @@ function DeleteConfirmationModal({ isOpen, songTitle, onConfirm, onCancel }: Del
         <div className="flex gap-3">
           <button
             onClick={onCancel}
-            className="flex-1 px-4 py-2.5 bg-gray-800 hover:bg-gray-700 text-white font-semibold rounded-lg transition"
+            className="flex-1 px-4 py-2.5 bg-gray-800 hover:bg-gray-700 text-white font-semibold rounded-lg transition ripple"
           >
             Cancel
           </button>
           <button
             onClick={onConfirm}
-            className="flex-1 px-4 py-2.5 bg-red-500 hover:bg-red-600 text-white font-semibold rounded-lg transition"
+            className="flex-1 px-4 py-2.5 bg-red-500 hover:bg-red-600 text-white font-semibold rounded-lg transition ripple"
           >
             Delete
           </button>
@@ -78,27 +80,13 @@ function DeleteConfirmationModal({ isOpen, songTitle, onConfirm, onCancel }: Del
 }
 
 function EditSongModal({ isOpen, song, onSave, onCancel }: EditModalProps) {
-  const [songTitle, setSongTitle] = useState("");
-  const [artistName, setArtistName] = useState("");
+  const [songTitle, setSongTitle] = useState(song?.Title || "");
+  const [artistName, setArtistName] = useState(song?.Artist || "");
   const [errors, setErrors] = useState({ title: "", artist: "" });
-
-  // Reset form when modal opens with new song
-  useEffect(() => {
-    if (isOpen && song) {
-      const title = song.Title || "";
-      const artist = song.Artist || "";
-      setTimeout(() => {
-        setSongTitle(title);
-        setArtistName(artist);
-        setErrors({ title: "", artist: "" });
-      }, 0);
-    }
-  }, [isOpen, song]);
 
   if (!isOpen || !song) return null;
 
   const handleSave = () => {
-    // Validation
     const newErrors = { title: "", artist: "" };
     let isValid = true;
 
@@ -126,8 +114,8 @@ function EditSongModal({ isOpen, song, onSave, onCancel }: EditModalProps) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
-      <div className="bg-[#1a1a1a] border border-gray-800 rounded-lg p-6 max-w-md w-full mx-4 shadow-2xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm animate-fade-in">
+      <div className="glass-light border border-gray-800 rounded-lg p-6 max-w-md w-full mx-4 shadow-2xl animate-fade-in">
         <div className="flex items-center gap-4 mb-6">
           <div className="w-12 h-12 bg-yellow-400/20 rounded-full flex items-center justify-center">
             <svg className="w-6 h-6 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -148,7 +136,7 @@ function EditSongModal({ isOpen, song, onSave, onCancel }: EditModalProps) {
             <input
               id="song-title"
               type="text"
-              onKeyDown={handleKeyPress}
+              value={songTitle}
               onChange={(e) => setSongTitle(e.target.value)}
               onKeyPress={handleKeyPress}
               className={`w-full bg-[#0a0a0a] text-white px-4 py-2.5 rounded-lg border ${
@@ -156,9 +144,7 @@ function EditSongModal({ isOpen, song, onSave, onCancel }: EditModalProps) {
               } focus:border-yellow-400 focus:outline-none transition`}
               placeholder="Enter song title"
             />
-            {errors.title && (
-              <p className="text-red-500 text-sm mt-1">{errors.title}</p>
-            )}
+            {errors.title && <p className="text-red-500 text-sm mt-1">{errors.title}</p>}
           </div>
 
           <div>
@@ -176,22 +162,20 @@ function EditSongModal({ isOpen, song, onSave, onCancel }: EditModalProps) {
               } focus:border-yellow-400 focus:outline-none transition`}
               placeholder="Enter artist name"
             />
-            {errors.artist && (
-              <p className="text-red-500 text-sm mt-1">{errors.artist}</p>
-            )}
+            {errors.artist && <p className="text-red-500 text-sm mt-1">{errors.artist}</p>}
           </div>
         </div>
 
         <div className="flex gap-3">
           <button
             onClick={onCancel}
-            className="flex-1 px-4 py-2.5 bg-gray-800 hover:bg-gray-700 text-white font-semibold rounded-lg transition"
+            className="flex-1 px-4 py-2.5 bg-gray-800 hover:bg-gray-700 text-white font-semibold rounded-lg transition ripple"
           >
             Cancel
           </button>
           <button
             onClick={handleSave}
-            className="flex-1 px-4 py-2.5 bg-yellow-400 hover:bg-yellow-500 text-black font-semibold rounded-lg transition"
+            className="flex-1 px-4 py-2.5 bg-yellow-400 hover:bg-yellow-500 text-black font-semibold rounded-lg transition ripple"
           >
             Save Changes
           </button>
@@ -217,10 +201,12 @@ export default function DashboardPage() {
     song: null,
   });
   const { playSong, currentSong, stopAndClear } = usePlayer();
+  const { showToast } = useToast();
   const router = useRouter();
 
   const ITEMS_PER_PAGE = 20;
-  const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
+  const BASE_URL = "http://localhost:8080";
+
   const fetchSongs = useCallback(
     async (page: number) => {
       try {
@@ -249,19 +235,19 @@ export default function DashboardPage() {
           setHasMore((data.songs || []).length === ITEMS_PER_PAGE);
           setCurrentPage(page);
         } else if (response.status === 401) {
-          // Token expired or invalid
           localStorage.removeItem("token");
           router.push("/signin");
         } else {
-          console.error("Failed to fetch songs");
+          showToast("Failed to fetch songs", "error");
         }
       } catch (error) {
         console.error("Error fetching songs:", error);
+        showToast("Error loading songs", "error");
       } finally {
         setIsLoading(false);
       }
     },
-    [router]
+    [router, showToast]
   );
 
   useEffect(() => {
@@ -280,8 +266,7 @@ export default function DashboardPage() {
   };
 
   const handlePlaySong = (song: Song) => {
-    // Play this song with the full playlist as queue
-    playSong(song, songs);
+    playSong(song);
   };
 
   const filteredSongs = songs.filter(
@@ -322,23 +307,22 @@ export default function DashboardPage() {
       });
 
       if (response.ok) {
-        // If the deleted song is currently playing, stop it
         if (currentSong?.SongID === songId) {
           stopAndClear();
         }
-        // Remove song from state
         setSongs((prev) => prev.filter((s) => s.SongID !== songId));
         closeDeleteModal();
+        showToast("Song deleted successfully", "success");
       } else if (response.status === 401) {
         localStorage.removeItem("token");
         router.push("/signin");
       } else {
-        alert("Failed to delete song");
+        showToast("Failed to delete song", "error");
         closeDeleteModal();
       }
     } catch (error) {
       console.error("Error deleting song:", error);
-      alert("Failed to delete song");
+      showToast("Error deleting song", "error");
       closeDeleteModal();
     }
   };
@@ -372,7 +356,6 @@ export default function DashboardPage() {
       });
 
       if (response.ok) {
-        // Update song in state
         setSongs((prev) =>
           prev.map((s) =>
             s.SongID === editModal.song?.SongID
@@ -381,21 +364,21 @@ export default function DashboardPage() {
           )
         );
         closeEditModal();
+        showToast("Song updated successfully", "success");
       } else if (response.status === 401) {
         localStorage.removeItem("token");
         router.push("/signin");
       } else {
-        alert("Failed to update song");
+        showToast("Failed to update song", "error");
       }
     } catch (error) {
       console.error("Error updating song:", error);
-      alert("Failed to update song");
+      showToast("Error updating song", "error");
     }
   };
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white">
-      {/* Delete Confirmation Modal */}
       <DeleteConfirmationModal
         isOpen={deleteModal.isOpen}
         songTitle={deleteModal.songTitle}
@@ -403,8 +386,8 @@ export default function DashboardPage() {
         onCancel={closeDeleteModal}
       />
 
-      {/* Edit Song Modal */}
       <EditSongModal
+        key={editModal.song?.SongID || 'none'}
         isOpen={editModal.isOpen}
         song={editModal.song}
         onSave={handleEditSave}
@@ -412,7 +395,7 @@ export default function DashboardPage() {
       />
 
       {/* Sidebar */}
-      <aside className="fixed left-0 top-0 h-full w-64 bg-[#0f0f0f] border-r border-gray-800 p-6 hidden lg:block">
+      <aside className="fixed left-0 top-0 h-full w-64 bg-[#0f0f0f] border-r border-gray-800 p-6 hidden lg:block z-40">
         <div className="flex items-center gap-2 mb-8">
           <div className="w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center">
             <span className="text-black font-bold">♪</span>
@@ -423,7 +406,7 @@ export default function DashboardPage() {
         <nav className="space-y-2">
           <Link
             href="/dashboard"
-            className="flex items-center gap-3 px-4 py-3 bg-gray-800 rounded-lg text-white"
+            className="flex items-center gap-3 px-4 py-3 bg-gray-800 rounded-lg text-white transition-all card-hover"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
@@ -433,7 +416,7 @@ export default function DashboardPage() {
 
           <Link
             href="/dashboard/search"
-            className="flex items-center gap-3 px-4 py-3 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition"
+            className="flex items-center gap-3 px-4 py-3 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition-all card-hover"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -443,7 +426,7 @@ export default function DashboardPage() {
 
           <Link
             href="/dashboard/library"
-            className="flex items-center gap-3 px-4 py-3 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition"
+            className="flex items-center gap-3 px-4 py-3 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition-all card-hover"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
@@ -453,7 +436,7 @@ export default function DashboardPage() {
 
           <Link
             href="/dashboard/playlists"
-            className="flex items-center gap-3 px-4 py-3 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition"
+            className="flex items-center gap-3 px-4 py-3 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition-all card-hover"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
@@ -463,7 +446,7 @@ export default function DashboardPage() {
 
           <Link
             href="/dashboard/upload"
-            className="flex items-center gap-3 px-4 py-3 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition"
+            className="flex items-center gap-3 px-4 py-3 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition-all card-hover"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
@@ -474,7 +457,7 @@ export default function DashboardPage() {
 
         <button
           onClick={handleLogout}
-          className="absolute bottom-6 left-6 right-6 flex items-center gap-3 px-4 py-3 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition"
+          className="absolute bottom-6 left-6 right-6 flex items-center gap-3 px-4 py-3 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition-all card-hover ripple"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
@@ -486,7 +469,7 @@ export default function DashboardPage() {
       {/* Main Content */}
       <main className="lg:ml-64 min-h-screen pb-32">
         {/* Header */}
-        <header className="sticky top-0 z-10 bg-[#0a0a0a]/95 backdrop-blur-sm border-b border-gray-800 px-6 py-4">
+        <header className="sticky top-0 z-10 glass backdrop-blur-sm border-b border-gray-800 px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4 flex-1 max-w-xl">
               <div className="relative flex-1">
@@ -495,7 +478,7 @@ export default function DashboardPage() {
                   placeholder="Search for songs..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-[#1a1a1a] text-white pl-10 pr-4 py-2 rounded-lg border border-gray-700 focus:border-yellow-400 focus:outline-none"
+                  className="w-full bg-[#1a1a1a] text-white pl-10 pr-4 py-2 rounded-lg border border-gray-700 focus:border-yellow-400 focus:outline-none transition-all"
                 />
                 <svg className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -505,7 +488,7 @@ export default function DashboardPage() {
 
             <div className="flex items-center gap-4">
               <Link href="/dashboard/upload" className="hidden sm:block">
-                <button className="bg-yellow-400 hover:bg-yellow-500 text-black font-semibold px-4 py-2 rounded-lg transition">
+                <button className="bg-yellow-400 hover:bg-yellow-500 text-black font-semibold px-4 py-2 rounded-lg transition-all ripple">
                   Upload Song
                 </button>
               </Link>
@@ -516,9 +499,16 @@ export default function DashboardPage() {
         {/* Content */}
         <div className="px-6 py-8">
           {isLoading ? (
-            <div className="flex items-center justify-center h-64">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-yellow-400"></div>
-            </div>
+            <>
+              <section className="mb-12">
+                <h2 className="text-2xl font-bold mb-6">Your Songs</h2>
+                <GridSkeleton count={12} />
+              </section>
+              <section>
+                <h2 className="text-2xl font-bold mb-6">Recently Added</h2>
+                <ListSkeleton count={5} />
+              </section>
+            </>
           ) : (
             <>
               {/* Your Songs */}
@@ -531,7 +521,7 @@ export default function DashboardPage() {
                 </div>
 
                 {filteredSongs.length === 0 ? (
-                  <div className="text-center py-16">
+                  <div className="text-center py-16 animate-fade-in">
                     <div className="w-24 h-24 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4">
                       <svg className="w-12 h-12 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
@@ -543,7 +533,7 @@ export default function DashboardPage() {
                     </p>
                     {!searchQuery && (
                       <Link href="/dashboard/upload">
-                        <button className="bg-yellow-400 hover:bg-yellow-500 text-black font-semibold px-6 py-3 rounded-lg transition">
+                        <button className="bg-yellow-400 hover:bg-yellow-500 text-black font-semibold px-6 py-3 rounded-lg transition-all ripple">
                           Upload Your First Song
                         </button>
                       </Link>
@@ -555,14 +545,16 @@ export default function DashboardPage() {
                       {filteredSongs.map((song) => (
                         <div
                           key={song.SongID}
-                          className="bg-[#1a1a1a] hover:bg-[#252525] p-4 rounded-lg transition cursor-pointer group relative"
+                          className={`bg-[#1a1a1a] hover:bg-[#252525] p-4 rounded-lg transition-all cursor-pointer group relative card-hover animate-fade-in ${
+                            currentSong?.SongID === song.SongID ? "ring-2 ring-yellow-400" : ""
+                          }`}
                           onClick={() => handlePlaySong(song)}
                         >
                           {/* Action Buttons */}
                           <div className="absolute top-2 right-2 flex gap-2 z-10">
                             <button
                               onClick={(e) => openEditModal(song, e)}
-                              className="w-8 h-8 bg-yellow-400 hover:bg-yellow-500 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition"
+                              className="w-8 h-8 bg-yellow-400 hover:bg-yellow-500 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all ripple"
                               title="Edit song"
                             >
                               <svg className="w-4 h-4 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -571,7 +563,7 @@ export default function DashboardPage() {
                             </button>
                             <button
                               onClick={(e) => openDeleteModal(song.SongID, song.Title, e)}
-                              className="w-8 h-8 bg-red-500 hover:bg-red-600 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition"
+                              className="w-8 h-8 bg-red-500 hover:bg-red-600 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all ripple"
                               title="Delete song"
                             >
                               <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -581,14 +573,17 @@ export default function DashboardPage() {
                           </div>
 
                           <div className="relative mb-4">
-                            <Image
+                            <FadeImage
                               src="/music.gif"
                               alt={song.Title}
                               width={200}
                               height={200}
-                              className="w-full aspect-square object-cover rounded-lg"
+                              className={`w-full aspect-square object-cover rounded-lg ${
+                                currentSong?.SongID === song.SongID ? "animate-pulse-scale" : ""
+                              }`}
+                              unoptimized={true}
                             />
-                            <button className="absolute bottom-2 right-2 w-12 h-12 bg-yellow-400 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition transform hover:scale-105 shadow-lg">
+                            <button className="absolute bottom-2 right-2 w-12 h-12 bg-yellow-400 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all transform hover:scale-105 shadow-lg ripple">
                               <svg className="w-6 h-6 text-black ml-1" fill="currentColor" viewBox="0 0 24 24">
                                 <path d="M8 5v14l11-7z" />
                               </svg>
@@ -605,7 +600,7 @@ export default function DashboardPage() {
                       <div className="text-center mt-8">
                         <button
                           onClick={loadMore}
-                          className="bg-gray-800 hover:bg-gray-700 text-white font-semibold px-6 py-3 rounded-lg transition"
+                          className="bg-gray-800 hover:bg-gray-700 text-white font-semibold px-6 py-3 rounded-lg transition-all ripple"
                         >
                           Load More
                         </button>
@@ -623,10 +618,12 @@ export default function DashboardPage() {
                     {songs.slice(0, 5).map((song) => (
                       <div
                         key={song.SongID}
-                        className="flex items-center gap-4 p-3 bg-[#1a1a1a] hover:bg-[#252525] rounded-lg transition cursor-pointer group"
+                        className={`flex items-center gap-4 p-3 bg-[#1a1a1a] hover:bg-[#252525] rounded-lg transition-all cursor-pointer group animate-fade-in ${
+                          currentSong?.SongID === song.SongID ? "active-song" : ""
+                        }`}
                         onClick={() => handlePlaySong(song)}
                       >
-                        <Image
+                        <FadeImage
                           src="/music.gif"
                           alt={song.Title}
                           width={56}
@@ -640,7 +637,7 @@ export default function DashboardPage() {
                         </div>
                         <button 
                           onClick={(e) => openEditModal(song, e)}
-                          className="w-10 h-10 bg-yellow-400 hover:bg-yellow-500 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition mr-2"
+                          className="w-10 h-10 bg-yellow-400 hover:bg-yellow-500 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all mr-2 ripple"
                           title="Edit song"
                         >
                           <svg className="w-5 h-5 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -649,14 +646,14 @@ export default function DashboardPage() {
                         </button>
                         <button 
                           onClick={(e) => openDeleteModal(song.SongID, song.Title, e)}
-                          className="w-10 h-10 bg-red-500 hover:bg-red-600 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition mr-2"
+                          className="w-10 h-10 bg-red-500 hover:bg-red-600 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all mr-2 ripple"
                           title="Delete song"
                         >
                           <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                           </svg>
                         </button>
-                        <button className="w-10 h-10 bg-yellow-400 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
+                        <button className="w-10 h-10 bg-yellow-400 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all ripple">
                           <svg className="w-5 h-5 text-black ml-0.5" fill="currentColor" viewBox="0 0 24 24">
                             <path d="M8 5v14l11-7z" />
                           </svg>
@@ -672,7 +669,7 @@ export default function DashboardPage() {
       </main>
 
       {/* Mobile Navigation */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-[#0f0f0f] border-t border-gray-800 px-4 py-2 flex justify-around z-40">
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 glass border-t border-gray-800 px-4 py-2 flex justify-around z-40">
         <Link href="/dashboard" className="flex flex-col items-center gap-1 text-yellow-400">
           <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
             <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" />
