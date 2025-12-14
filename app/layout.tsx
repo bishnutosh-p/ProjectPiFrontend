@@ -2,6 +2,7 @@
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { PlayerProvider } from "./contexts/playercontext";
+import { HealthProvider } from "./contexts/healthcontext";
 import GlobalPlayer from "./components/globalplayer";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -10,7 +11,7 @@ export const metadata = {
   title: "ProjectPi",
   description: "Your personal music streaming platform",
   icons: {
-    icon: "/favicon.svg", // or '/favicon.ico' depending on which option you chose
+    icon: "/favicon.svg",
   },
 };
 
@@ -22,10 +23,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <PlayerProvider>
-          {children}
-          <GlobalPlayer />
-        </PlayerProvider>
+        <HealthProvider>
+          <PlayerProvider>
+            {children}
+            <GlobalPlayer />
+          </PlayerProvider>
+        </HealthProvider>
       </body>
     </html>
   );
