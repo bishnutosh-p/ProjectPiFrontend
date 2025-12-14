@@ -41,14 +41,14 @@ export function HealthProvider({ children }: { children: ReactNode }) {
         setIsHealthy(true);
       } else {
         setIsHealthy(false);
-        if (pathname !== "/offline" && pathname !== "/signin" && pathname !== "/signup") {
+        if (pathname !== "/offline") {
           router.push("/offline");
         }
       }
     } catch (error) {
       console.error('Backend health check failed:', error);
       setIsHealthy(false);
-      if (pathname !== "/offline" && pathname !== "/signin" && pathname !== "/signup") {
+      if (pathname !== "/offline") {
         router.push("/offline");
       }
     } finally {
